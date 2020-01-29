@@ -1,0 +1,24 @@
+{
+    "name": "microtube-socket",
+    "version": "1.0.0",
+    "description": "Socket service for the MicroTube app",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kirpalmakanga/microtube-socket.git"
+    },
+    "bugs": {
+        "url": "https://github.com/kirpalmakanga/microtube-socket/issues"
+    },
+    "homepage": "https://github.com/kirpalmakanga/microtube-socket#readme",
+    "dependencies": {
+        "express": "4.17.1",
+        "socket.io": "2.3.0"
+    },
+    "engines": {
+        "node": "13.1.x"
+    }
+}
