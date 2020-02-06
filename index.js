@@ -67,5 +67,13 @@ io.on('connection', (socket) => {
         );
 
         socket.on('devices:sync', () => syncDevices(userId));
+
+        socket.on('player:current-time', (t) => {
+            socket.broadcast.to(userId).emit('player:current-time', t);
+        });
+
+        socket.on('player:loaded-fraction', (n) => {
+            socket.broadcast.to(userId).emit('player:loaded-fraction', n);
+        });
     });
 });
