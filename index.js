@@ -51,8 +51,8 @@ const setMasterDevice = (deviceId, roomId) => {
 };
 
 io.on('connection', (socket) => {
-    const broadcast = (room, ...params) =>
-        socket.broadcast.to(room).emit(...params);
+    const broadcast = (roomId, ...params) =>
+        socket.broadcast.to(roomId).emit(...params);
 
     socket.on('room', (roomId) => {
         socket.join(roomId);
@@ -71,16 +71,8 @@ io.on('connection', (socket) => {
 
         socket.on('devices:sync', () => syncDevices(roomId));
 
-        socket.on('player:current-time', (t) =>
-            broadcast(roomId, 'player:current-time', t)
-        );
-
-        socket.on('player:loaded-fraction', (n) =>
-            broadcast(roomId, 'player:loaded-fraction', n)
-        );
-
-        socket.on('player:volume', (v) =>
-            broadcast(roomId, 'player:volume', v)
+        socket.on('player:sync', (data) =>
+            broadcast(roomId, 'player:sync', data)
         );
     });
 });
