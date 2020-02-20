@@ -1,14 +1,14 @@
 const express = require('express');
 const socketIO = require('socket.io');
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8081;
 
 const server = express().listen(PORT, () =>
     console.log(`Listening on ${PORT}`)
 );
 
 const io = socketIO(server, {
-    origins: 'https://microtube.netlify.com:*'
+    origins: 'localhost:8080 microtube.netlify.*:*'
 });
 
 const connectedDevices = {};
