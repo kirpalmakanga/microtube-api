@@ -8,7 +8,7 @@ const server = express().listen(PORT, () =>
 );
 
 const io = socketIO(server, {
-    origins: 'https://microtube.netlify.com'
+    origins: 'https://microtube.netlify.com:*'
 });
 
 const connectedDevices = {};
