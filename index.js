@@ -11,69 +11,68 @@ const io = socketIO(server);
 
 const connectedDevices = {};
 
-const syncDevices = (userId) => {
-    if (connectedDevices[userId]) {
-        io.to(userId).emit('devices:sync', [
-            ...connectedDevices[userId].values()
+const syncDevices = (roomId) => {
+    if (connectedDevices[roomId]) {
+        io.to(roomId).emit('devices:sync', [
+            ...connectedDevices[roomId].values()
         ]);
     }
 };
 
-const addDevice = (device, userId) => {
-    if (!connectedDevices[userId] || !connectedDevices[userId].size) {
-        connectedDevices[userId] = new Map();
+const addDevice = (device, roomId) => {
+    if (!connectedDevices[roomId] || !connectedDevices[roomId].size) {
+        connectedDevices[roomId] = new Map();
 
         device.isMaster = true;
     }
 
-    connectedDevices[userId].set(device.deviceId, device);
+    connectedDevices[roomId].set(device.deviceId, device);
 
-    syncDevices(userId);
+    syncDevices(roomId);
 };
 
-const removeDevice = (deviceId, userId) => {
-    if (connectedDevices[userId]) {
-        connectedDevices[userId].delete(deviceId);
+const removeDevice = (deviceId, roomId) => {
+    if (connectedDevices[roomId]) {
+        connectedDevices[roomId].delete(deviceId);
     }
 
-    syncDevices(userId);
+    syncDevices(roomId);
 };
 
-const setMasterDevice = (deviceId, userId) => {
-    for (const [id, data] of connectedDevices[userId]) {
-        connectedDevices[userId].set(id, {
+const setMasterDevice = (deviceId, roomId) => {
+    for (const [id, data] of connectedDevices[roomId]) {
+        connectedDevices[roomId].set(id, {
             ...data,
             isMaster: id === deviceId
         });
     }
 
-    syncDevices(userId);
+    syncDevices(roomId);
 };
 
 io.on('connection', (socket) => {
-    socket.on('room', (userId) => {
-        socket.join(userId);
+    const broadcast = (roomId, ...params) =>
+        socket.broadcast.to(roomId).emit(...params);
+
+    socket.on('room', (roomId) => {
+        socket.join(roomId);
 
         socket.on('device:add', (device) => {
-            addDevice(device, userId);
+            addDevice(device, roomId);
 
             socket.on('disconnect', () =>
-                removeDevice(device.deviceId, userId)
+                removeDevice(device.deviceId, roomId)
             );
         });
 
         socket.on('device:active', (deviceId) =>
-            setMasterDevice(deviceId, userId)
+            setMasterDevice(deviceId, roomId)
         );
 
-        socket.on('devices:sync', () => syncDevices(userId));
+        socket.on('devices:sync', () => syncDevices(roomId));
 
-        socket.on('player:current-time', (t) => {
-            socket.broadcast.to(userId).emit('player:current-time', t);
-        });
-
-        socket.on('player:loaded-fraction', (n) => {
-            socket.broadcast.to(userId).emit('player:loaded-fraction', n);
-        });
+        socket.on('player:sync', (data) =>
+            broadcast(roomId, 'player:sync', data)
+        );
     });
 });
