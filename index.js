@@ -8,42 +8,54 @@ const server = express().listen(PORT, () =>
 );
 
 const io = socketIO(server, {
-    origins: 'https://microtube.netlify.com:*'
+    cors: {
+        origin: ['http://localhost:8080', 'https://microtube.netlify.*:*']
+    }
 });
 
 const connectedDevices = {};
 
+const getRoomDevices = (roomId) => connectedDevices.get(roomId);
+
 const syncDevices = (roomId) => {
-    if (connectedDevices[roomId]) {
-        io.to(roomId).emit('devices:sync', [
-            ...connectedDevices[roomId].values()
-        ]);
+    const devices = getRoomDevices(roomId);
+
+    if (devices) {
+        io.to(roomId).emit('devices:sync', [...devices.values()]);
     }
 };
 
 const addDevice = (device, roomId) => {
-    if (!connectedDevices[roomId] || !connectedDevices[roomId].size) {
-        connectedDevices[roomId] = new Map();
+    const devices = getRoomDevices(roomId);
 
+    if (devices.size === 0) {
         device.isMaster = true;
     }
 
-    connectedDevices[roomId].set(device.deviceId, device);
+    devices.set(device.deviceId, device);
 
     syncDevices(roomId);
 };
 
 const removeDevice = (deviceId, roomId) => {
-    if (connectedDevices[roomId]) {
-        connectedDevices[roomId].delete(deviceId);
+    const devices = getRoomDevices(roomId);
+
+    devices.delete(deviceId);
+
+    if (devices.size === 1) {
+        const [device] = [...devices.values()];
+
+        devices.set(device.deviceId, { ...device, isMaster: true });
     }
 
     syncDevices(roomId);
 };
 
 const setMasterDevice = (deviceId, roomId) => {
-    for (const [id, data] of connectedDevices[roomId]) {
-        connectedDevices[roomId].set(id, {
+    const devices = getRoomDevices(roomId);
+
+    for (const [id, data] of devices) {
+        devices?.set(id, {
             ...data,
             isMaster: id === deviceId
         });
@@ -58,6 +70,10 @@ io.on('connection', (socket) => {
 
     socket.on('room', (roomId) => {
         socket.join(roomId);
+
+        if (!getRoomDevices(roomId)) {
+            connectedDevices.set(roomId, new Map());
+        }
 
         socket.on('device:add', (device) => {
             addDevice(device, roomId);
