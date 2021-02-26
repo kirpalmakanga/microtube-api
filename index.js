@@ -13,7 +13,7 @@ const io = socketIO(server, {
     }
 });
 
-const connectedDevices = {};
+const connectedDevices = new Map();
 
 const getRoomDevices = (roomId) => connectedDevices.get(roomId);
 
@@ -55,7 +55,7 @@ const setMasterDevice = (deviceId, roomId) => {
     const devices = getRoomDevices(roomId);
 
     for (const [id, data] of devices) {
-        devices?.set(id, {
+        devices.set(id, {
             ...data,
             isMaster: id === deviceId
         });
