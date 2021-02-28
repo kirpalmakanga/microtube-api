@@ -9,11 +9,8 @@ const server = express().listen(PORT, () =>
 
 const io = socketIO(server, {
     cors: {
-        origin: [
-            'http://localhost:8080',
-            'https://microtube.netlify.app:*',
-            'https://microtube.netlify.com:*'
-        ]
+        origin:
+            'http://localhost:8080 https://microtube.netlify.app:* https://microtube.netlify.com:*'
     }
 });
 
