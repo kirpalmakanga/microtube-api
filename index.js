@@ -1,6 +1,7 @@
 const express = require('express');
 const socketIO = require('socket.io');
 
+const { NODE_ENV } = process.env;
 const PORT = process.env.PORT || 8081;
 
 const server = express().listen(PORT, () =>
@@ -9,7 +10,10 @@ const server = express().listen(PORT, () =>
 
 const io = socketIO(server, {
     cors: {
-        origin: 'http://localhost:8080 https://microtube.netlify.app'
+        origin:
+            NODE_ENV === 'production'
+                ? 'https://microtube.netlify.app'
+                : 'http://localhost:8080'
     }
 });
 
