@@ -8,18 +8,6 @@ const server = express().listen(PORT, () =>
 );
 
 const io = socketIO(server, {
-<<<<<<< HEAD
-    origins: 'localhost:8080 microtube.netlify.*:*',
-});
-
-const connectedDevices = new Map();
-
-const syncDevices = (roomId) => {
-    if (connectedDevices.get(roomId)) {
-        io.to(roomId).emit('devices:sync', [
-            ...connectedDevices.get(roomId).values(),
-        ]);
-=======
     cors: {
         origin: [
             'http://localhost:8080',
@@ -38,35 +26,22 @@ const syncDevices = (roomId) => {
 
     if (devices) {
         io.to(roomId).emit('devices:sync', [...devices.values()]);
->>>>>>> release/1.3.0
     }
 };
 
 const addDevice = (device, roomId) => {
-<<<<<<< HEAD
-    if (!connectedDevices.get(roomId)?.size) {
-        connectedDevices.set(roomId, new Map());
-=======
     const devices = getRoomDevices(roomId);
->>>>>>> release/1.3.0
 
     if (devices.size === 0) {
         device.isMaster = true;
     }
 
-<<<<<<< HEAD
-    connectedDevices.get(roomId).set(device.deviceId, device);
-=======
     devices.set(device.deviceId, device);
->>>>>>> release/1.3.0
 
     syncDevices(roomId);
 };
 
 const removeDevice = (deviceId, roomId) => {
-<<<<<<< HEAD
-    connectedDevices.get(roomId)?.delete(deviceId);
-=======
     const devices = getRoomDevices(roomId);
 
     devices.delete(deviceId);
@@ -76,23 +51,17 @@ const removeDevice = (deviceId, roomId) => {
 
         devices.set(device.deviceId, { ...device, isMaster: true });
     }
->>>>>>> release/1.3.0
 
     syncDevices(roomId);
 };
 
 const setMasterDevice = (deviceId, roomId) => {
-<<<<<<< HEAD
-    for (const [id, data] of connectedDevices.get(roomId)) {
-        connectedDevices.get(roomId)?.set(id, {
-=======
     const devices = getRoomDevices(roomId);
 
     for (const [id, data] of devices) {
         devices.set(id, {
->>>>>>> release/1.3.0
             ...data,
-            isMaster: id === deviceId,
+            isMaster: id === deviceId
         });
     }
 
