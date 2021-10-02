@@ -30,15 +30,18 @@ const syncDevices = (roomId) => {
 };
 
 const addDevice = (device, roomId) => {
+    const { deviceId } = device;
     const devices = getRoomDevices(roomId);
 
     if (devices.size === 0) {
         device.isMaster = true;
     }
 
-    devices.set(device.deviceId, device);
+    if (!devices.get(deviceId)) {
+        devices.set(deviceId, device);
 
-    syncDevices(roomId);
+        syncDevices(roomId);
+    }
 };
 
 const removeDevice = (deviceId, roomId) => {
