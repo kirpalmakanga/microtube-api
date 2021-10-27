@@ -50,9 +50,7 @@ const removeDevice = (deviceId, roomId) => {
     devices.delete(deviceId);
 
     if (devices.size === 1) {
-        const [device] = [...devices.values()];
-
-        devices.set(device.deviceId, { ...device, isMaster: true });
+        devices.get(deviceId).isMaster = true;
     }
 
     syncDevices(roomId);
@@ -61,20 +59,14 @@ const removeDevice = (deviceId, roomId) => {
 const setMasterDevice = (deviceId, roomId) => {
     const devices = getRoomDevices(roomId);
 
-    for (const [id, data] of devices) {
-        devices.set(id, {
-            ...data,
-            isMaster: id === deviceId
-        });
+    for (const id of devices.keys()) {
+        devices.get(id).isMaster = id === deviceId;
     }
 
     syncDevices(roomId);
 };
 
-io.on('connection', (socket) => {
-    const broadcast = (roomId, ...params) =>
-        socket.broadcast.to(roomId).emit(...params);
-
+io.on('connection', (socket) =>
     socket.on('room', (roomId) => {
         socket.join(roomId);
 
@@ -97,7 +89,7 @@ io.on('connection', (socket) => {
         socket.on('devices:sync', () => syncDevices(roomId));
 
         socket.on('player:sync', (data) =>
-            broadcast(roomId, 'player:sync', data)
+            socket.broadcast.to(roomId).emit('player:sync', data)
         );
-    });
-});
+    })
+);
