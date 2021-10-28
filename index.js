@@ -50,7 +50,9 @@ const removeDevice = (deviceId, roomId) => {
     devices.delete(deviceId);
 
     if (devices.size === 1) {
-        devices.get(deviceId).isMaster = true;
+        const [device] = devices.values();
+
+        device.isMaster = true;
     }
 
     syncDevices(roomId);
