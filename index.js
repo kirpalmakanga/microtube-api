@@ -1,12 +1,78 @@
 const express = require('express');
+const cors = require('cors');
 const socketIO = require('socket.io');
+const { google } = require('googleapis');
 
 const { NODE_ENV } = process.env;
 const PORT = process.env.PORT || 8081;
 
-const server = express().listen(PORT, () =>
-    console.log(`Listening on ${PORT}`)
+const oauth2 = new google.auth.OAuth2(
+    '172905821643-blr64u999b9v1vmqd6rovr3qvs03fcda.apps.googleusercontent.com',
+    'X9I9H8m90Fm3uHSi6I4cqYqL',
+    NODE_ENV === 'production'
+        ? 'https://microtube.netlify.app/callback'
+        : 'http://localhost:8080/callback'
 );
+
+const getProfile = async (accessToken) => {
+    const auth = new google.auth.OAuth2();
+
+    auth.setCredentials({ access_token: accessToken });
+
+    const oauth2 = google.oauth2({
+        auth,
+        version: 'v2'
+    });
+
+    const { data } = await oauth2.userinfo.get();
+
+    return data;
+};
+
+const app = express();
+
+app.use(cors());
+
+app.get('/authorization', async (_, res) => {
+    const url = await oauth2.generateAuthUrl({
+        access_type: 'offline',
+        scope: [
+            'openid',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'https://www.googleapis.com/auth/youtube'
+        ]
+    });
+
+    res.json({ url });
+});
+
+app.get('/token', async ({ query: { code } }, res) => {
+    try {
+        const {
+            tokens: { access_token: accessToken, refresh_token: refreshToken }
+        } = await oauth2.getToken(code);
+
+        const { id, name, picture } = await getProfile(accessToken);
+
+        res.json({
+            id,
+            name,
+            picture,
+            accessToken,
+            refreshToken
+        });
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).send({
+            error: 'server_error',
+            error_description: 'Error'
+        });
+    }
+});
+
+const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
 const io = socketIO(server, {
     cors: {
