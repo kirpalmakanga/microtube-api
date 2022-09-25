@@ -60,7 +60,11 @@ app.get('/token', async ({ query: { code } }, res) => {
     try {
         const client = getClient();
         const {
-            tokens: { access_token: accessToken, refresh_token: refreshToken }
+            tokens: {
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                id_token: idToken
+            }
         } = await client.getToken(code);
 
         const { id, name, picture } = await getProfile(accessToken);
@@ -70,7 +74,8 @@ app.get('/token', async ({ query: { code } }, res) => {
             name,
             picture,
             accessToken,
-            refreshToken
+            refreshToken,
+            idToken
         });
     } catch (error) {
         console.log(error);
