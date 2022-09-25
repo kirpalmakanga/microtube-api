@@ -6,25 +6,33 @@ const { google } = require('googleapis');
 const { NODE_ENV } = process.env;
 const PORT = process.env.PORT || 8081;
 
-const oauth2 = new google.auth.OAuth2(
-    '172905821643-blr64u999b9v1vmqd6rovr3qvs03fcda.apps.googleusercontent.com',
-    'X9I9H8m90Fm3uHSi6I4cqYqL',
-    NODE_ENV === 'production'
-        ? 'https://microtube.netlify.app/callback'
-        : 'http://localhost:8080/callback'
-);
+const getClient = (credentials) => {
+    const oauth2 = new google.auth.OAuth2({
+        clientId:
+            '172905821643-blr64u999b9v1vmqd6rovr3qvs03fcda.apps.googleusercontent.com',
+        clientSecret: 'X9I9H8m90Fm3uHSi6I4cqYqL',
+        redirectUri:
+            NODE_ENV === 'production'
+                ? 'https://microtube.netlify.app/callback'
+                : 'http://localhost:8080/callback'
+    });
+
+    if (credentials) oauth2.setCredentials(credentials);
+
+    return oauth2;
+};
 
 const getProfile = async (accessToken) => {
-    const auth = new google.auth.OAuth2();
+    const oauth2 = new google.auth.OAuth2();
 
-    auth.setCredentials({ access_token: accessToken });
+    oauth2.setCredentials({ access_token: accessToken });
 
-    const oauth2 = google.oauth2({
-        auth,
+    const auth = google.oauth2({
+        auth: oauth2,
         version: 'v2'
     });
 
-    const { data } = await oauth2.userinfo.get();
+    const { data } = await auth.userinfo.get();
 
     return data;
 };
@@ -34,7 +42,8 @@ const app = express();
 app.use(cors());
 
 app.get('/authorization', async (_, res) => {
-    const url = await oauth2.generateAuthUrl({
+    const client = getClient();
+    const url = await client.generateAuthUrl({
         access_type: 'offline',
         scope: [
             'openid',
@@ -49,9 +58,10 @@ app.get('/authorization', async (_, res) => {
 
 app.get('/token', async ({ query: { code } }, res) => {
     try {
+        const client = getClient();
         const {
             tokens: { access_token: accessToken, refresh_token: refreshToken }
-        } = await oauth2.getToken(code);
+        } = await client.getToken(code);
 
         const { id, name, picture } = await getProfile(accessToken);
 
@@ -70,6 +80,25 @@ app.get('/token', async ({ query: { code } }, res) => {
             error_description: 'Error'
         });
     }
+});
+
+app.get('/refresh', async ({ query: { refreshToken } }, res) => {
+    const client = getClient({ refresh_token: refreshToken });
+
+    client.refreshAccessToken((error, tokens) => {
+        if (error) {
+            console.log(error);
+
+            res.status(500).send({
+                error: 'server_error',
+                error_description: 'Error'
+            });
+        } else {
+            const { access_token: accessToken } = tokens;
+
+            res.json({ accessToken });
+        }
+    });
 });
 
 const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
