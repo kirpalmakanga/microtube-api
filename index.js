@@ -99,9 +99,9 @@ app.get('/refresh', async ({ query: { refreshToken } }, res) => {
                 error_description: 'Error'
             });
         } else {
-            const { access_token: accessToken } = tokens;
+            const { id_token: idToken, access_token: accessToken } = tokens;
 
-            res.json({ accessToken });
+            res.json({ idToken, accessToken });
         }
     });
 });
