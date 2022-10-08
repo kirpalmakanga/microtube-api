@@ -1,7 +1,7 @@
 {
-    "name": "microtube-socket",
-    "version": "1.3.0",
-    "description": "Socket service for the MicroTube app",
+    "name": "microtube-api",
+    "version": "1.4.0",
+    "description": "API for the MicroTube app",
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
@@ -9,14 +9,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/kirpalmakanga/microtube-socket.git"
+        "url": "git+https://github.com/kirpalmakanga/microtube-api.git"
     },
     "bugs": {
-        "url": "https://github.com/kirpalmakanga/microtube-socket/issues"
+        "url": "https://github.com/kirpalmakanga/microtube-api/issues"
     },
-    "homepage": "https://github.com/kirpalmakanga/microtube-socket#readme",
+    "homepage": "https://github.com/kirpalmakanga/microtube-api#readme",
     "engines": {
-        "node": "14.x"
+        "node": "18.x"
     },
     "dependencies": {
         "cors": "^2.8.5",
