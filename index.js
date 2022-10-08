@@ -6,15 +6,12 @@ const { google } = require('googleapis');
 const { NODE_ENV } = process.env;
 const PORT = process.env.PORT || 8081;
 
-const getClient = (credentials) => {
+const getClient = ({ redirectUri, ...credentials } = {}) => {
     const oauth2 = new google.auth.OAuth2({
         clientId:
             '172905821643-blr64u999b9v1vmqd6rovr3qvs03fcda.apps.googleusercontent.com',
         clientSecret: 'X9I9H8m90Fm3uHSi6I4cqYqL',
-        redirectUri:
-            NODE_ENV === 'production'
-                ? 'https://microtube.netlify.app/callback'
-                : 'http://localhost:8080/callback'
+        redirectUri
     });
 
     if (credentials) oauth2.setCredentials(credentials);
@@ -39,10 +36,20 @@ const getProfile = async (accessToken) => {
 
 const app = express();
 
-app.use(cors());
+app.use(
+    cors({
+        origin: [
+            'http://localhost:8080',
+            'https://microtube.netlify.app',
+            'https://microtube-dev.netlify.app'
+        ]
+    })
+);
 
-app.get('/authorization', async (_, res) => {
-    const client = getClient();
+app.get('/authorization', async ({ headers: { origin } }, res) => {
+    const client = getClient({
+        redirectUri: `${origin}/callback`
+    });
     const url = await client.generateAuthUrl({
         access_type: 'offline',
         scope: [
@@ -56,9 +63,11 @@ app.get('/authorization', async (_, res) => {
     res.json({ url });
 });
 
-app.get('/token', async ({ query: { code } }, res) => {
+app.get('/token', async ({ headers: { origin }, query: { code } }, res) => {
     try {
-        const client = getClient();
+        const client = getClient({
+            redirectUri: `${origin}/callback`
+        });
         const {
             tokens: {
                 access_token: accessToken,
@@ -87,24 +96,30 @@ app.get('/token', async ({ query: { code } }, res) => {
     }
 });
 
-app.get('/refresh', async ({ query: { refreshToken } }, res) => {
-    const client = getClient({ refresh_token: refreshToken });
+app.get(
+    '/refresh',
+    async ({ headers: { origin }, query: { refreshToken } }, res) => {
+        const client = getClient({
+            redirectUri: `${origin}/callback`,
+            refresh_token: refreshToken
+        });
 
-    client.refreshAccessToken((error, tokens) => {
-        if (error) {
-            console.log(error);
+        client.refreshAccessToken((error, tokens) => {
+            if (error) {
+                console.log(error);
 
-            res.status(500).send({
-                error: 'server_error',
-                error_description: 'Error'
-            });
-        } else {
-            const { id_token: idToken, access_token: accessToken } = tokens;
+                res.status(500).send({
+                    error: 'server_error',
+                    error_description: 'Error'
+                });
+            } else {
+                const { id_token: idToken, access_token: accessToken } = tokens;
 
-            res.json({ idToken, accessToken });
-        }
-    });
-});
+                res.json({ idToken, accessToken });
+            }
+        });
+    }
+);
 
 const server = app.listen(PORT, () => console.log(`Listening on ${PORT}`));
 
