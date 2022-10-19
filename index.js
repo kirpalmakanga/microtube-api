@@ -3,8 +3,7 @@ const cors = require('cors');
 const socketIO = require('socket.io');
 const { google } = require('googleapis');
 
-const { NODE_ENV } = process.env;
-const PORT = process.env.PORT || 8081;
+const { NODE_ENV, PORT = 8081 } = process.env;
 
 const getClient = ({ redirectUri, ...credentials } = {}) => {
     const oauth2 = new google.auth.OAuth2({
@@ -40,6 +39,7 @@ app.use(
     cors({
         origin: [
             'http://localhost:8080',
+            'https://microtube.dev',
             'https://microtube.netlify.app',
             'https://microtube-dev.netlify.app'
         ]
@@ -52,6 +52,7 @@ app.get('/authorization', async ({ headers: { origin } }, res) => {
     });
     const url = await client.generateAuthUrl({
         access_type: 'offline',
+        prompt: 'consent',
         scope: [
             'openid',
             'https://www.googleapis.com/auth/userinfo.email',
