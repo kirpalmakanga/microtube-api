@@ -22,3 +22,9 @@ npm install
 # pnpm
 pnpm install
 ```
+
+Run:
+
+```
+npm start
+```
