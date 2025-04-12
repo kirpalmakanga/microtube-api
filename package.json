@@ -1,0 +1,31 @@
+{
+    "name": "microtube-api",
+    "version": "1.4.0",
+    "description": "API for the MicroTube app",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "start:dev": "nodemon index.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/kirpalmakanga/microtube-api.git"
+    },
+    "bugs": {
+        "url": "https://github.com/kirpalmakanga/microtube-api/issues"
+    },
+    "homepage": "https://github.com/kirpalmakanga/microtube-api#readme",
+    "engines": {
+        "node": "22.x"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.0.3",
+        "express": "^4.17.1",
+        "googleapis": "^108.0.0",
+        "socket.io": "^4.2.0"
+    },
+    "devDependencies": {
+        "nodemon": "^2.0.13"
+    }
+}
